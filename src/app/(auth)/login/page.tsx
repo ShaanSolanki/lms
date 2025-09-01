@@ -6,8 +6,30 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { GithubIcon, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import { Label } from "@/components/ui/label";
+import { authClient } from "@/lib/auth-client"
+import { toast } from "sonner";
+import { useTransition } from "react";
 
 export default function LoginPage() {
+    const [githubPending, startGithubTransition] = useTransition()
+
+    async function SignInWithGitHub() {
+        await authClient.signIn.social({
+            provider: 'github',
+            callbackURL:"/",
+            fetchOptions :
+            {
+                onSuccess:() =>{
+                    toast.success("Successfully signed in with GitHub!");
+                },
+                onError:(error) =>{
+                    toast.error(error.error.message);
+                }
+            }
+
+        });
+    }
     const [showPassword, setShowPassword] = useState(false);
 
     return (
@@ -23,7 +45,7 @@ export default function LoginPage() {
             </CardHeader>
 
             <CardContent className="space-y-6">
-                <Button variant="outline" className="w-full h-11 gap-3 hover:bg-accent/50 transition-colors">
+                <Button onClick={SignInWithGitHub} variant="outline" className="w-full h-11 gap-3 hover:bg-accent/50 transition-colors">
                     <GithubIcon className="w-5 h-5" />
                     Continue with GitHub
                 </Button>
