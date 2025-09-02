@@ -5,6 +5,7 @@ export interface IUser extends Document {
   _id: string;
   name: string;
   email: string;
+  password?: string; // Optional for social login users
   image?: string;
   emailVerified?: boolean;
   createdAt: Date;
@@ -45,6 +46,11 @@ const userSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
+    },
+    password: {
+      type: String,
+      required: false, // Optional for social login users
+      minlength: 8,
     },
     image: {
       type: String,

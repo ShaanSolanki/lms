@@ -2,6 +2,7 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  password?: string; // Optional for social login users
   image?: string;
   emailVerified?: boolean;
   createdAt: Date;

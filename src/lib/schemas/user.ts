@@ -5,6 +5,7 @@ export const userSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
   email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters").optional(),
   image: z.string().url("Invalid image URL").optional(),
   emailVerified: z.boolean().optional(),
   createdAt: z.date().optional(),

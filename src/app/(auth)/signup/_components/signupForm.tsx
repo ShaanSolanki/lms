@@ -4,34 +4,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { GithubIcon, Mail, Lock, Eye, EyeOff, Loader } from "lucide-react";
-import { useState } from "react";
-import { Label } from "@/components/ui/label";
-import { authClient } from "@/lib/auth-client"
+import { GithubIcon, Mail, Lock, Eye, EyeOff, Loader, User } from "lucide-react";
+import { useState, useTransition } from "react";
+import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-  
 
-
-export function LoginForm() {
+export function SignupForm() {
     const [githubPending, startGithubTransition] = useTransition();
     const [emailPending, startEmailTransition] = useTransition();
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [formData, setFormData] = useState({
+        name: "",
         email: "",
         password: "",
-        rememberMe: false
+        confirmPassword: "",
+        agreeToTerms: false
     });
+    const router = useRouter();
 
-    async function signInWithGitHub() {
+    async function signUpWithGitHub() {
         startGithubTransition(async () => {
             await authClient.signIn.social({
                 provider: 'github',
                 callbackURL: "/",
                 fetchOptions: {
                     onSuccess: () => {
-                        toast.success("Successfully signed in with GitHub!");
+                        toast.success("Successfully signed up with GitHub!");
                     },
                     onError: (error) => {
                         toast.error(error.error.message);
@@ -41,20 +42,32 @@ export function LoginForm() {
         });
     }
 
-    async function signInWithEmail(e: React.FormEvent) {
+    async function signUpWithEmail(e: React.FormEvent) {
         e.preventDefault();
         
+        if (formData.password !== formData.confirmPassword) {
+            toast.error("Passwords do not match");
+            return;
+        }
+
+        if (!formData.agreeToTerms) {
+            toast.error("Please agree to the terms and conditions");
+            return;
+        }
+
         startEmailTransition(async () => {
-            await authClient.signIn.email({
+            await authClient.signUp.email({
+                name: formData.name,
                 email: formData.email,
                 password: formData.password,
                 callbackURL: "/",
                 fetchOptions: {
                     onSuccess: () => {
-                        toast.success("Successfully signed in!");
+                        toast.success("Account created successfully!");
+                        router.push("/");
                     },
                     onError: (error) => {
-                        toast.error(error.error.message || "Failed to sign in");
+                        toast.error(error.error.message || "Failed to create account");
                     },
                 },
             });
@@ -70,28 +83,28 @@ export function LoginForm() {
     };
 
     return (
-         <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+        <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
             <CardHeader className="space-y-3 text-center">
                 <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Lock className="w-6 h-6 text-primary" />
+                    <User className="w-6 h-6 text-primary" />
                 </div>
-                <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
+                <CardTitle className="text-2xl font-semibold">Create your account</CardTitle>
                 <CardDescription className="text-muted-foreground">
-                    Sign in to your account to continue
+                    Sign up to get started with our platform
                 </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6">
                 <Button
                     disabled={githubPending}
-                    onClick={signInWithGitHub} 
+                    onClick={signUpWithGitHub} 
                     variant="outline" 
                     className="w-full h-11 gap-3 hover:bg-accent/50 transition-colors"
                 >
                     {githubPending ? (
                         <>
                             <Loader className="size-4 animate-spin"/>
-                            <span>Signing in...</span>
+                            <span>Signing up...</span>
                         </>
                     ) : (
                         <>
@@ -112,7 +125,28 @@ export function LoginForm() {
                     </div>
                 </div>
 
-                <form onSubmit={signInWithEmail} className="space-y-4">
+                <form onSubmit={signUpWithEmail} className="space-y-4">
+                    <div className="space-y-2">
+                        <label htmlFor="name" className="text-sm font-medium text-foreground">
+                            Full name
+                        </label>
+                        <div className="relative">
+                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input 
+                                id="name"
+                                name="name"
+                                type="text" 
+                                placeholder="Enter your full name"
+                                className="pl-10 h-11"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                required
+                                minLength={2}
+                                maxLength={50}
+                            />
+                        </div>
+                    </div>
+
                     <div className="space-y-2">
                         <label htmlFor="email" className="text-sm font-medium text-foreground">
                             Email address
@@ -142,11 +176,12 @@ export function LoginForm() {
                                 id="password"
                                 name="password"
                                 type={showPassword ? "text" : "password"}
-                                placeholder="Enter your password"
+                                placeholder="Create a password"
                                 className="pl-10 pr-10 h-11"
                                 value={formData.password}
                                 onChange={handleInputChange}
                                 required
+                                minLength={8}
                             />
                             <button
                                 type="button"
@@ -158,21 +193,53 @@ export function LoginForm() {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-sm">
-                        <label className="flex items-center space-x-2 cursor-pointer">
-                            <Checkbox 
-                                id="remember" 
-                                name="rememberMe"
-                                checked={formData.rememberMe}
-                                onCheckedChange={(checked) => 
-                                    setFormData(prev => ({ ...prev, rememberMe: checked as boolean }))
-                                }
-                            />
-                            <span className="text-muted-foreground">Remember me</span>
+                    <div className="space-y-2">
+                        <label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
+                            Confirm password
                         </label>
-                        <Link href="/forgot-password" className="text-primary hover:text-primary/80 font-medium transition-colors">
-                            Forgot password?
-                        </Link>
+                        <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input 
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                type={showConfirmPassword ? "text" : "password"}
+                                placeholder="Confirm your password"
+                                className="pl-10 pr-10 h-11"
+                                value={formData.confirmPassword}
+                                onChange={handleInputChange}
+                                required
+                                minLength={8}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex items-start space-x-2">
+                        <Checkbox 
+                            id="agreeToTerms" 
+                            name="agreeToTerms"
+                            checked={formData.agreeToTerms}
+                            onCheckedChange={(checked) => 
+                                setFormData(prev => ({ ...prev, agreeToTerms: checked as boolean }))
+                            }
+                            className="mt-1"
+                        />
+                        <label htmlFor="agreeToTerms" className="text-sm text-muted-foreground leading-relaxed">
+                            I agree to the{" "}
+                            <Link href="/terms" className="text-primary hover:text-primary/80 font-medium transition-colors">
+                                Terms of Service
+                            </Link>{" "}
+                            and{" "}
+                            <Link href="/privacy" className="text-primary hover:text-primary/80 font-medium transition-colors">
+                                Privacy Policy
+                            </Link>
+                        </label>
                     </div>
 
                     <Button 
@@ -183,18 +250,18 @@ export function LoginForm() {
                         {emailPending ? (
                             <>
                                 <Loader className="size-4 animate-spin mr-2"/>
-                                Signing in...
+                                Creating account...
                             </>
                         ) : (
-                            "Sign in"
+                            "Create account"
                         )}
                     </Button>
                 </form>
 
                 <div className="text-center text-sm text-muted-foreground">
-                    Don't have an account?{" "}
-                    <Link href="/signup" className="text-primary hover:text-primary/80 font-medium transition-colors">
-                        Sign up
+                    Already have an account?{" "}
+                    <Link href="/login" className="text-primary hover:text-primary/80 font-medium transition-colors">
+                        Sign in
                     </Link>
                 </div>
             </CardContent>
