@@ -10,12 +10,14 @@ import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { OTPVerification } from "./otpVerification";
 
 export function SignupForm() {
     const [githubPending, startGithubTransition] = useTransition();
     const [emailPending, startEmailTransition] = useTransition();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showOTPVerification, setShowOTPVerification] = useState(false);
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -56,21 +58,24 @@ export function SignupForm() {
         }
 
         startEmailTransition(async () => {
-            await authClient.signUp.email({
-                name: formData.name,
-                email: formData.email,
-                password: formData.password,
-                callbackURL: "/",
-                fetchOptions: {
-                    onSuccess: () => {
-                        toast.success("Account created successfully!");
-                        router.push("/");
+            try {
+                await authClient.signUp.email({
+                    name: formData.name,
+                    email: formData.email,
+                    password: formData.password,
+                    fetchOptions: {
+                        onSuccess: () => {
+                            toast.success("Account created! Please verify your email.");
+                            setShowOTPVerification(true);
+                        },
+                        onError: (error) => {
+                            toast.error(error.error.message || "Failed to create account");
+                        },
                     },
-                    onError: (error) => {
-                        toast.error(error.error.message || "Failed to create account");
-                    },
-                },
-            });
+                });
+            } catch (error) {
+                toast.error("Failed to create account");
+            }
         });
     }
 
@@ -81,6 +86,20 @@ export function SignupForm() {
             [name]: type === 'checkbox' ? checked : value
         }));
     };
+
+    const handleBackToSignup = () => {
+        setShowOTPVerification(false);
+    };
+
+    // Show OTP verification if needed
+    if (showOTPVerification) {
+        return (
+            <OTPVerification 
+                email={formData.email} 
+                onBack={handleBackToSignup}
+            />
+        );
+    }
 
     return (
         <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">

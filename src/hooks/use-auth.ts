@@ -1,6 +1,7 @@
 "use client";
 
-import { useSession, signIn, signOut } from "@/lib/auth-client";
+import { useSession, signIn, signOut, signUp } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 
 export function useAuth() {
   const { data: session, isPending, error } = useSession();
@@ -36,10 +37,33 @@ export function useAuth() {
         name,
         email,
         password,
-        callbackURL: "/dashboard",
       });
     } catch (error) {
       console.error("Registration error:", error);
+      throw error;
+    }
+  };
+
+  const sendVerificationOTP = async (email: string) => {
+    try {
+      await authClient.emailOtp.sendVerificationOtp({
+        email,
+        type: "email-verification",
+      });
+    } catch (error) {
+      console.error("Send OTP error:", error);
+      throw error;
+    }
+  };
+
+  const verifyEmail = async (email: string, otp: string) => {
+    try {
+      await authClient.emailOtp.verifyEmail({
+        email,
+        otp,
+      });
+    } catch (error) {
+      console.error("Verify email error:", error);
       throw error;
     }
   };
@@ -67,6 +91,8 @@ export function useAuth() {
     loginWithGithub,
     loginWithEmail,
     register,
+    sendVerificationOTP,
+    verifyEmail,
     logout,
     isAuthenticated: !!session?.user,
   };
