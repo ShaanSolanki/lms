@@ -1,6 +1,45 @@
 "use client"
 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { GithubIcon, Mail, Lock, Eye, EyeOff, Loader } from "lucide-react";
+import { useState } from "react";
+import { Label } from "@/components/ui/label";
+import { authClient } from "@/lib/auth-client"
+import { toast } from "sonner";
+import { useTransition } from "react";
+  
+
+
 export function LoginForm() {
+
+ const [githubPending, startGithubTransition] = useTransition()
+
+   async function SignInWithGitHub() {
+    startGithubTransition(async () => {
+        await authClient.signIn.social({
+            provider: 'github',
+            callbackURL: "/",
+            fetchOptions: {
+                onSuccess: () => {
+                    toast.success("Successfully signed in with GitHub!");
+                },
+                onError: (error) => {
+                    toast.error(error.error.message);
+                },
+            },
+        });
+    }); // <-- close startGithubTransition properly
+}
+
+
+
+
+      
+    const [showPassword, setShowPassword] = useState(false);
+
     return (
          <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
             <CardHeader className="space-y-3 text-center">
