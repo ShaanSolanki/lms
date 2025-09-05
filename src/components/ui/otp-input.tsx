@@ -25,7 +25,7 @@ export function OTPInput({
       // Handle paste
       const pastedValue = digit.slice(0, length);
       onChange(pastedValue);
-      
+
       // Focus the last filled input or the next empty one
       const nextIndex = Math.min(pastedValue.length, length - 1);
       inputRefs.current[nextIndex]?.focus();
@@ -59,7 +59,9 @@ export function OTPInput({
       {Array.from({ length }, (_, index) => (
         <input
           key={index}
-          ref={(el) => (inputRefs.current[index] = el)}
+          ref={(el) => {
+            inputRefs.current[index] = el
+          }}
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"

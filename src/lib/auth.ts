@@ -1,12 +1,11 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { emailOTP } from "better-auth/plugins";
-import { client, connectDB } from "./db";
+import { MongoClient } from "mongodb";
 import { resend } from "./resend";
 
-await connectDB();
-
-// pick database name (from env or fallback)
+// MongoDB connection
+const client = new MongoClient(process.env.MONGODB_URI!);
 const dbName = process.env.MONGODB_DB;
 
 export const auth = betterAuth({
