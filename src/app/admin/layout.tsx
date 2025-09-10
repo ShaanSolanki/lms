@@ -7,14 +7,17 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import { requireAdmin } from "@/app/data/admin/require-admin"
 
 import data from "./data.json"
 
 
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  // Protect the entire admin area - only admins can access
+  await requireAdmin();
   return (
-     <SidebarProvider
+    <SidebarProvider
       style={
         {
           "--sidebar-width": "calc(var(--spacing) * 72)",

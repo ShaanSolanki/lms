@@ -2,6 +2,7 @@ import { z } from "zod";
 import { PutObjectCommand, CreateBucketCommand, HeadBucketCommand } from "@aws-sdk/client-s3";
 import { S3 } from "@/lib/S3Client";
 import { NextResponse } from "next/server";
+import { requireAdminAPI } from "@/app/data/admin/require-admin-api";
 
 // Generate a simple unique ID without external dependencies
 function generateUniqueId(): string {
@@ -17,6 +18,12 @@ const fileUploadSchema = z.object({
 
 export async function POST(request: Request) {
     try {
+        // Check admin authentication
+        const sessionOrError = await requireAdminAPI()
+        if (sessionOrError instanceof NextResponse) {
+            return sessionOrError
+        }
+
         const body = await request.json();
         console.log('Upload request received for file:', body.fileName);
 

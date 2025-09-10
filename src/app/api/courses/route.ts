@@ -5,6 +5,7 @@ import { CourseLevel, CourseStatus } from '@/lib/types/course'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { connectDB } from '@/lib/db'
+import { requireAdminAPI } from '@/app/data/admin/require-admin-api'
 
 const createCourseSchema = z.object({
     title: z.string().min(1).max(200),
@@ -21,13 +22,10 @@ const createCourseSchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
-        // Check authentication
-        const session = await auth.api.getSession({
-            headers: await headers(),
-        })
-
-        if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        // Check admin authentication
+        const sessionOrError = await requireAdminAPI()
+        if (sessionOrError instanceof NextResponse) {
+            return sessionOrError
         }
 
         // Parse request body

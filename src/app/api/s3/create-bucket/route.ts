@@ -1,9 +1,16 @@
 import { CreateBucketCommand, PutBucketPolicyCommand } from "@aws-sdk/client-s3";
 import { S3 } from "@/lib/S3Client";
 import { NextResponse } from "next/server";
+import { requireAdminAPI } from "@/app/data/admin/require-admin-api";
 
 export async function POST(request: Request) {
     try {
+        // Check admin authentication
+        const sessionOrError = await requireAdminAPI()
+        if (sessionOrError instanceof NextResponse) {
+            return sessionOrError
+        }
+
         const { bucketName } = await request.json();
         const finalBucketName = bucketName || process.env.NEXT_PUBLIC_S3_BUCKET_NAME_IMAGES;
 

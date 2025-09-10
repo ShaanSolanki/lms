@@ -3,6 +3,7 @@ import { Course, ensureCourseIndexes } from '@/lib/models/course'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { connectDB } from '@/lib/db'
+import { requireAdminAPI } from '@/app/data/admin/require-admin-api'
 
 export async function GET(
     request: NextRequest,
@@ -34,13 +35,10 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        // Check authentication
-        const session = await auth.api.getSession({
-            headers: await headers(),
-        })
-
-        if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        // Check admin authentication
+        const sessionOrError = await requireAdminAPI()
+        if (sessionOrError instanceof NextResponse) {
+            return sessionOrError
         }
 
         const body = await request.json()
@@ -74,13 +72,10 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        // Check authentication
-        const session = await auth.api.getSession({
-            headers: await headers(),
-        })
-
-        if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        // Check admin authentication
+        const sessionOrError = await requireAdminAPI()
+        if (sessionOrError instanceof NextResponse) {
+            return sessionOrError
         }
 
         await connectDB()

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Edit, ArrowLeft } from 'lucide-react'
 import { CourseThumbnail } from '@/components/ui/course-thumbnail'
+import { formatPrice } from '@/lib/utils/currency'
 
 async function getCourse(id: string) {
     try {
@@ -35,9 +36,7 @@ export default async function CourseDetailPage({
         notFound()
     }
 
-    const formatPrice = (price: number) => {
-        return price === 0 ? 'Free' : `$${price.toFixed(2)}`
-    }
+
 
     const getStatusColor = (status: string) => {
         switch (status) {

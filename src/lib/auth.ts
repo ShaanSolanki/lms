@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { emailOTP } from "better-auth/plugins";
+import { admin } from "better-auth/plugins";
 import { MongoClient } from "mongodb";
 import { resend } from "./resend";
 
@@ -23,6 +24,37 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
+  },
+  schema: {
+    user: {
+      fields: {
+        role: {
+          type: "string",
+          required: false,
+          defaultValue: "user",
+        },
+        banned: {
+          type: "boolean",
+          required: false,
+        },
+        banReason: {
+          type: "string",
+          required: false,
+        },
+        banExpires: {
+          type: "date",
+          required: false,
+        },
+      },
+    },
+    session: {
+      fields: {
+        impersonatedBy: {
+          type: "string",
+          required: false,
+        },
+      },
+    },
   },
   plugins: [
     emailOTP({
@@ -53,5 +85,6 @@ export const auth = betterAuth({
       otpLength: 6,
       expiresIn: 60 * 10, // 10 minutes
     }),
+    admin(),
   ],
 });

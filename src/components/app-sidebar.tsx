@@ -32,6 +32,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useIsAdmin } from "@/hooks/use-admin"
 
 const data = {
 
@@ -147,6 +148,16 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const isAdmin = useIsAdmin();
+
+  // Filter navigation items based on admin role
+  const filteredNavMain = data.navMain.filter(item => {
+    // Only show admin routes to admin users
+    if (item.url.startsWith('/admin')) {
+      return isAdmin;
+    }
+    return true;
+  });
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -165,7 +176,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={filteredNavMain} />
         <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>

@@ -1,9 +1,16 @@
 import { PutBucketPolicyCommand, GetBucketPolicyCommand } from "@aws-sdk/client-s3";
 import { S3 } from "@/lib/S3Client";
 import { NextResponse } from "next/server";
+import { requireAdminAPI } from "@/app/data/admin/require-admin-api";
 
 export async function POST() {
     try {
+        // Check admin authentication
+        const sessionOrError = await requireAdminAPI()
+        if (sessionOrError instanceof NextResponse) {
+            return sessionOrError
+        }
+
         const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_IMAGES!;
 
         console.log('Making bucket public:', bucketName);
@@ -50,6 +57,12 @@ export async function POST() {
 
 export async function GET() {
     try {
+        // Check admin authentication
+        const sessionOrError = await requireAdminAPI()
+        if (sessionOrError instanceof NextResponse) {
+            return sessionOrError
+        }
+
         const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_IMAGES!;
 
         console.log('Getting bucket policy:', bucketName);

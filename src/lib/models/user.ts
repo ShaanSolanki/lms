@@ -8,6 +8,10 @@ export interface IUser extends Document {
   password?: string; // Optional for social login users
   image?: string;
   emailVerified?: boolean;
+  role?: string; // User role, defaults to 'user', admins have 'admin'
+  banned?: boolean; // Indicates whether the user is banned
+  banReason?: string; // The reason for the user's ban
+  banExpires?: Date; // The date when the user's ban will expire
   createdAt: Date;
   updatedAt: Date;
   // Better Auth specific fields
@@ -59,6 +63,23 @@ const userSchema = new Schema<IUser>(
     emailVerified: {
       type: Boolean,
       default: false,
+    },
+    role: {
+      type: String,
+      default: "user",
+      enum: ["user", "admin"],
+    },
+    banned: {
+      type: Boolean,
+      default: false,
+    },
+    banReason: {
+      type: String,
+      required: false,
+    },
+    banExpires: {
+      type: Date,
+      required: false,
     },
   },
   {
